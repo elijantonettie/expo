@@ -1,0 +1,137 @@
+import { useState, useMemo } from "react";
+import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
+
+const moodQuotes = {
+  happy: ["Keep shining ✨", "Joy looks good on you"],
+  sad: ["Be gentle with yourself 🤍", "This will pass"],
+  anxious: ["Breathe 🌿", "You’re safe"],
+  angry: ["Pause 🌙", "Let it go"],
+  neutral: ["Keep going", "You’re doing okay"]
+};
+
+export default function App() {
+  const [entry, setEntry] = useState("");
+  const [mood, setMood] = useState("neutral");
+  const [entries, setEntries] = useState([]);
+  const [quote, setQuote] = useState("");
+  const [dark, setDark] = useState(true);
+
+  const saveEntry = () => {
+    if (!entry.trim()) return;
+
+    const newEntry = {
+      text: entry,
+      mood,
+      date: new Date().toISOString()
+    };
+
+    setEntries([newEntry, ...entries]);
+
+    const q = moodQuotes[mood];
+    setQuote(q[Math.floor(Math.random() * q.length)]);
+
+    setEntry("");
+  };
+
+  // 🔥 streak
+  const streak = useMemo(() => {
+    const days = [...new Set(entries.map(e => e.date.split("T")[0]))].sort().reverse();
+    let count = 0;
+    let current = new Date();
+
+    for (let d of days) {
+      if (new Date(d).toDateString() === current.toDateString()) {
+        count++;
+        current.setDate(current.getDate() - 1);
+      } else break;
+    }
+    return count;
+  }, [entries]);
+
+  return (
+    <ScrollView style={{
+      flex: 1,
+      backgroundColor: dark ? "#18181b" : "#fdf2f8",
+      padding: 20
+    }}>
+      <Text style={{
+        fontSize: 28,
+        color: dark ? "#fff" : "#000",
+        marginBottom: 10
+      }}>
+        Lunara 🌙
+      </Text>
+
+      {/* Streak */}
+      <Text style={{ color: dark ? "#aaa" : "#444", marginBottom: 10 }}>
+        🔥 {streak} day streak
+      </Text>
+
+      {/* Input */}
+      <TextInput
+        placeholder="Write your thoughts..."
+        placeholderTextColor="#888"
+        value={entry}
+        onChangeText={setEntry}
+        multiline
+        style={{
+          backgroundColor: dark ? "#27272a" : "#fff",
+          color: dark ? "#fff" : "#000",
+          padding: 15,
+          borderRadius: 10,
+          marginBottom: 10
+        }}
+      />
+
+      {/* Mood buttons */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 10 }}>
+        {Object.keys(moodQuotes).map(m => (
+          <TouchableOpacity
+            key={m}
+            onPress={() => setMood(m)}
+            style={{
+              padding: 8,
+              margin: 4,
+              borderRadius: 10,
+              backgroundColor: mood === m ? "#a78bfa" : "#444"
+            }}
+          >
+            <Text style={{ color: "#fff" }}>{m}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Save */}
+      <TouchableOpacity
+        onPress={saveEntry}
+        style={{
+          backgroundColor: "#8b5cf6",
+          padding: 12,
+          borderRadius: 10,
+          marginBottom: 10
+        }}
+      >
+        <Text style={{ color: "#fff", textAlign: "center" }}>
+          Save Entry
+        </Text>
+      </TouchableOpacity>
+
+      {/* Quote */}
+      {quote ? (
+        <Text style={{
+          color: "#ddd",
+          fontStyle: "italic",
+          marginBottom: 10
+        }}>
+          “{quote}”
+        </Text>
+      ) : null}
+
+      {/* Entries */}
+      {entries.map((e, i) => (
+        <View key={i} style={{
+          backgroundColor: "#27272a",
+          padding: 10,
+          borderRadius: 10,
+          marginBottom: 8
+        }}>
